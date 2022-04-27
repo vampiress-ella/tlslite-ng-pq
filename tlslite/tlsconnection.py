@@ -677,9 +677,10 @@ class TLSConnection(TLSRecordLayer):
                                 serverName, nextProtos, reqTack, alpn, cs5490): # CS 5490
         #Initialize acceptable ciphersuites
         cipherSuites = [CipherSuite.TLS_EMPTY_RENEGOTIATION_INFO_SCSV]
-        print(f'cs5490: {cs5490}')
-        if cs5490: # CS 5490
-            cipherSuites += CipherSuite.getRlwekexRlwesigSuites(settings)
+        if cs5490:
+            # CS 5490
+            # cipherSuites += CipherSuite.getRlwekexRlwesigSuites(settings)
+            cipherSuites += CipherSuite.getRlweSuite(settings)
         elif srpParams:
             cipherSuites += CipherSuite.getSrpAllSuites(settings)
         elif certParams:
@@ -1881,6 +1882,7 @@ class TLSConnection(TLSRecordLayer):
                     break
 
             if self.version <= (3, 3) and curve_name not in settings.eccCurves:
+                print('d')
                 for result in self._sendError(
                         AlertDescription.handshake_failure,
                         "Peer sent certificate with curve we did not "
@@ -3440,6 +3442,8 @@ class TLSConnection(TLSRecordLayer):
                 cipherSuites += CipherSuite.getEcdsaSuites(settings, version)
                 cipherSuites += CipherSuite.getEcdheCertSuites(settings,
                                                                version)
+                # CS 5490
+                cipherSuites += CipherSuite.getRlweSuite(settings, version)
             if ffGroupIntersect:
                 cipherSuites += CipherSuite.getDheCertSuites(settings,
                                                              version)
