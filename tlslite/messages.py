@@ -1513,6 +1513,10 @@ class ServerKeyExchange(HandshakeMsg):
             assert self.curve_type == 3
             self.named_curve = parser.get(2)
             self.ecdh_Ys = parser.getVarBytes(1)
+        # CS 5490
+        elif self.cipherSuite in CipherSuite.rlweSuite:
+            # TODO
+            pass
         else:
             raise AssertionError()
 
@@ -1554,6 +1558,10 @@ class ServerKeyExchange(HandshakeMsg):
             assert self.curve_type == 3
             writer.add(self.named_curve, 2)
             writer.addVarSeq(self.ecdh_Ys, 1, 1)
+        # CS 5490
+        elif self.cipherSuite in CipherSuite.rlweSuite:
+            # TODO
+            pass
         else:
             assert(False)
         return writer.bytes

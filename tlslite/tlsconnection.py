@@ -1645,7 +1645,8 @@ class TLSConnection(TLSRecordLayer):
         # if server chose cipher suite with authentication, get the certificate
         if cipherSuite in CipherSuite.certAllSuites or \
                 cipherSuite in CipherSuite.ecdheEcdsaSuites or \
-                cipherSuite in CipherSuite.dheDsaSuites:
+                cipherSuite in CipherSuite.dheDsaSuites or \
+                cipherSuite in CipherSuite.rlweSuite: # CS 5490
             for result in self._getMsg(ContentType.handshake,
                                        HandshakeType.certificate,
                                        certificateType):
@@ -1700,7 +1701,8 @@ class TLSConnection(TLSRecordLayer):
         publicKey = None
         if cipherSuite in CipherSuite.certAllSuites or \
                 cipherSuite in CipherSuite.ecdheEcdsaSuites or \
-                cipherSuite in CipherSuite.dheDsaSuites:
+                cipherSuite in CipherSuite.dheDsaSuites or \
+                cipherSuite in CipherSuite.rlweSuite: # CS 5490
             # get the certificate
             for result in self._clientGetKeyFromChain(serverCertificate,
                                                       settings,

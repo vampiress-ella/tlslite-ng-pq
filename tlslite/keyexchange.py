@@ -269,6 +269,8 @@ class KeyExchange(object):
     def _tls12_verify_SKE(serverKeyExchange, publicKey, clientRandom,
                           serverRandom, validSigAlgs):
         """Verify TLSv1.2 version of SKE."""
+        print(serverKeyExchange.hashAlg)
+        print(serverKeyExchange.signAlg)
         if (serverKeyExchange.hashAlg, serverKeyExchange.signAlg) not in \
                 validSigAlgs:
             raise TLSIllegalParameterException("Server selected "
@@ -642,31 +644,36 @@ class ARLWEKeyExchange(KeyExchange):
         super(ARLWEKeyExchange, self).__init__(cipherSuite, clientHello,
                                                serverHello)
         
-        # TODO variables
+        # TODO : variables?
     
     def makeServerKeyExchange(self):
         """
         Prepare server side of anonymous key exchange with selected parameters
         """
-        # TODO
-        return None
+        version = self.serverHello.server_version
+        ske = ServerKeyExchange(self.cipherSuite, version)
+        # TODO : uncomment below when method created
+        # ske.createRLWE(...)
+        return ske
     
     def processClientKeyExchange(self, clientKeyExchange):
         """Use client provided parameters to establish premaster secret"""
         # TODO
-        return None
+        # return None
+        return numberToByteArray(0)
     
     def processServerKeyExchange(self, srvPublicKey, serverKeyExchange):
         """Process the server key exchange, return premaster secret."""
         # TODO
-        return None
+        # return None
+        return numberToByteArray(0)
     
     def makeClientKeyExchange(self):
         """Create client key share for the key exchange"""
         cke = super(ARLWEKeyExchange, self).makeClientKeyExchange()
+        # TODO : uncomment below when method created
         # cke.createRLWE(...)
-        # TODO
-        return None
+        return cke
 
 
 # the DHE_RSA part comes from IETF ciphersuite names, we want to keep it
@@ -800,7 +807,7 @@ class RLWEKeyExchange(AuthenticatedKeyExchange, ARLWEKeyExchange):
     """Helper class for conduction RLWE key exchange (KEX)"""
     def __init__(self, cipherSuite, clientHello, serverHello, privateKey):
         super(RLWEKeyExchange, self).__init__(cipherSuite, clientHello,
-                                              serverHello, privateKey)
+                                              serverHello)
         self.privateKey = privateKey
 
 
