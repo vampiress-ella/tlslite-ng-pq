@@ -348,6 +348,10 @@ class HandshakeSettings(object):
     :vartype keyExchangeNames: list
     :ivar keyExchangeNames: Enabled key exchange types for the connection,
         influences selected cipher suites.
+
+    # CS 5490
+    :vartype cs5490: bool
+    :ivar cs5490: force usage of RLWE-based ciphersuite. False by default.
     """
 
     def _init_key_settings(self):
@@ -403,6 +407,7 @@ class HandshakeSettings(object):
         self.macNames = list(MAC_NAMES)
         self.keyExchangeNames = list(KEY_EXCHANGE_NAMES)
         self.cipherImplementations = list(CIPHER_IMPLEMENTATIONS)
+        self.cs5490 = False # CS 5490
 
     @staticmethod
     def _sanityCheckKeySizes(other):
@@ -653,6 +658,7 @@ class HandshakeSettings(object):
         other.minVersion = self.minVersion
         other.maxVersion = self.maxVersion
         other.versions = self.versions
+        other.cs5490 = self.cs5490 # CS 5490
 
     def _copy_extension_settings(self, other):
         """Copy values of settings related to extensions."""
@@ -714,6 +720,7 @@ class HandshakeSettings(object):
         other.keyShares = self.keyShares
         other.use_heartbeat_extension = self.use_heartbeat_extension
         other.heartbeat_response_callback = self.heartbeat_response_callback
+        other.cs5490 = self.cs5490 # CS 5490
 
     def validate(self):
         """

@@ -507,7 +507,7 @@ class TLSConnection(TLSRecordLayer):
         for result in self._clientSendClientHello(settings, session,
                                         srpUsername, srpParams, certParams,
                                         anonParams, serverName, nextProtos,
-                                        reqTack, alpn):
+                                        reqTack, alpn, settings.cs5490): # CS 5490
             if result in (0,1): yield result
             else: break
         clientHello = result
@@ -674,10 +674,13 @@ class TLSConnection(TLSRecordLayer):
 
     def _clientSendClientHello(self, settings, session, srpUsername,
                                 srpParams, certParams, anonParams,
-                                serverName, nextProtos, reqTack, alpn):
+                                serverName, nextProtos, reqTack, alpn, cs5490): # CS 5490
         #Initialize acceptable ciphersuites
         cipherSuites = [CipherSuite.TLS_EMPTY_RENEGOTIATION_INFO_SCSV]
-        if srpParams:
+        print(f'cs5490: {cs5490}')
+        if cs5490: # CS 5490
+            cipherSuites += CipherSuite.getRlwekexRlwesigSuites(settings)
+        elif srpParams:
             cipherSuites += CipherSuite.getSrpAllSuites(settings)
         elif certParams:
             cipherSuites += CipherSuite.getTLS13Suites(settings)

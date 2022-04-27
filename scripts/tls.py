@@ -77,19 +77,20 @@ def printUsage(s=None):
         print("  GMPY2       : Not Loaded")
 
     print("")
+    # CS 5490
     print("""Commands:
 
   server  
     [-c CERT] [-k KEY] [-t TACK] [-v VERIFIERDB] [-d DIR] [-l LABEL] [-L LENGTH]
     [--reqcert] [--param DHFILE] [--psk PSK] [--psk-ident IDENTITY]
     [--psk-sha384] [--ssl3] [--max-ver VER] [--tickets COUNT] [--cipherlist]
-    [--request-pha] [--require-pha]
+    [--request-pha] [--require-pha] [--cs5490]
     HOST:PORT
 
   client
     [-c CERT] [-k KEY] [-u USER] [-p PASS] [-l LABEL] [-L LENGTH] [-a ALPN]
     [--psk PSK] [--psk-ident IDENTITY] [--psk-sha384] [--resumption] [--ssl3]
-    [--max-ver VER] [--cipherlist]
+    [--max-ver VER] [--cipherlist] [--cs5490]
     HOST:PORT
 
   LABEL - TLS exporter label
@@ -110,6 +111,7 @@ def printUsage(s=None):
   --request-pha - ask client for post-handshake authentication
   --require-pha - abort connection if client didn't provide certificate in
                   post-handshake authentication
+  --cs5490 - force usage of RLWE-based ciphersuite
   CERT, KEY - the file with key and certificates that will be used by client or
         server. The server can accept multiple pairs of `-c` and `-k` options
         to configure different certificates (like RSA and ECDSA)
@@ -169,6 +171,7 @@ def handleArgs(argv, argString, flagsList=[]):
     ciphers = []
     request_pha = False
     require_pha = False
+    cs5490 = False # CS5490
 
     for opt, arg in opts:
         if opt == "-k":
@@ -246,6 +249,8 @@ def handleArgs(argv, argString, flagsList=[]):
             request_pha = True
         elif opt == "--require-pha":
             require_pha = True
+        elif opt == "--cs5490":
+            cs5490 = True # CS5490
         else:
             assert(False)
 
@@ -312,6 +317,8 @@ def handleArgs(argv, argString, flagsList=[]):
         retList.append(request_pha)
     if "require-pha" in flagsList:
         retList.append(require_pha)
+    if "cs5490" in flagsList:
+        retList.append(cs5490) # CS5490
     return retList
 
 
@@ -376,10 +383,10 @@ def clientCmd(argv):
     (address, privateKey, cert_chain, virtual_hosts, username, password,
             expLabel,
             expLength, alpn, psk, psk_ident, psk_hash, resumption, ssl3,
-            max_ver, cipherlist) = \
+            max_ver, cipherlist, cs5490) = \
         handleArgs(argv, "kcuplLa", ["psk=", "psk-ident=", "psk-sha384",
                                      "resumption", "ssl3", "max-ver=",
-                                     "cipherlist="])
+                                     "cipherlist=", "cs5490"]) # CS 5490
         
     if (cert_chain and not privateKey) or (not cert_chain and privateKey):
         raise SyntaxError("Must specify CERT and KEY together")
@@ -408,6 +415,9 @@ def clientCmd(argv):
     if cipherlist:
         settings.cipherNames = [item for cipher in cipherlist
                                 for item in cipher.split(',')]
+    # CS 5490
+    if cs5490:
+        settings.cs5490 = True
     try:
         start = time_stamp()
         if username and password:
@@ -512,11 +522,11 @@ def serverCmd(argv):
     (address, privateKey, cert_chain, virtual_hosts, tacks, verifierDB,
             directory, reqCert,
             expLabel, expLength, dhparam, psk, psk_ident, psk_hash, ssl3,
-            max_ver, tickets, cipherlist, request_pha, require_pha) = \
+            max_ver, tickets, cipherlist, request_pha, require_pha, cs5490) = \
         handleArgs(argv, "kctbvdlL",
                    ["reqcert", "param=", "psk=",
                     "psk-ident=", "psk-sha384", "ssl3", "max-ver=",
-                    "tickets=", "cipherlist=", "request-pha", "require-pha"])
+                    "tickets=", "cipherlist=", "request-pha", "require-pha", "cs5490"]) # CS 5490
 
 
     if (cert_chain and not privateKey) or (not cert_chain and privateKey):
@@ -561,6 +571,9 @@ def serverCmd(argv):
     if cipherlist:
         settings.cipherNames = [item for cipher in cipherlist
                                 for item in cipher.split(',')]
+    # CS 5490
+    if cs5490:
+        settings.cs5490 = True
 
     class MySimpleHTTPHandler(SimpleHTTPRequestHandler, object):
         """Buffer the header and body of HTTP message."""
