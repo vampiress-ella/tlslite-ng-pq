@@ -33,7 +33,7 @@ from .handshakesettings import HandshakeSettings, KNOWN_VERSIONS, CURVE_ALIASES
 from .handshakehashes import HandshakeHashes
 from .utils.tackwrapper import *
 from .utils.deprecations import deprecated_params
-from .keyexchange import KeyExchange, RSAKeyExchange, DHE_RSAKeyExchange, \
+from .keyexchange import KeyExchange, RLWEKeyExchange, RSAKeyExchange, DHE_RSAKeyExchange, \
         ECDHE_RSAKeyExchange, SRPKeyExchange, ADHKeyExchange, \
         AECDHKeyExchange, FFDHKeyExchange, ECDHKeyExchange
 from .handshakehelpers import HandshakeHelpers
@@ -2313,7 +2313,8 @@ class TLSConnection(TLSRecordLayer):
               cipherSuite in CipherSuite.dheCertSuites or
               cipherSuite in CipherSuite.dheDsaSuites or
               cipherSuite in CipherSuite.ecdheCertSuites or
-              cipherSuite in CipherSuite.ecdheEcdsaSuites):
+              cipherSuite in CipherSuite.ecdheEcdsaSuites or
+              cipherSuite in CipherSuite.rlweSuite): # CS 5490
             try:
                 sig_hash_alg, cert_chain, privateKey = \
                     self._pickServerKeyExchangeSig(settings,
@@ -2350,6 +2351,14 @@ class TLSConnection(TLSRecordLayer):
                                                    privateKey,
                                                    acceptedCurves,
                                                    defaultCurve)
+            # CS 5490
+            elif cipherSuite in CipherSuite.rlweSuite:
+                print("Hello, RLWE!")
+                keyExchange = RLWEKeyExchange(cipherSuite,
+                                              clientHello,
+                                              serverHello,
+                                              privateKey)
+
             else:
                 assert(False)
             for result in self._serverCertKeyExchange(clientHello, serverHello,

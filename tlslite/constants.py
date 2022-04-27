@@ -1296,7 +1296,6 @@ class CipherSuite:
             if cert_chain.x509List[0].certAlg in ("ecdsa", "Ed25519", "Ed448"):
                 includeSuites.update(CipherSuite.ecdheEcdsaSuites)
                 # CS 5490
-                print('!!!')
                 includeSuites.update(CipherSuite.rlweSuite)
             if cert_chain.x509List[0].certAlg == "dsa":
                 includeSuites.update(CipherSuite.dheDsaSuites)

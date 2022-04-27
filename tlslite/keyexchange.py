@@ -632,6 +632,43 @@ class ADHKeyExchange(KeyExchange):
         return cke
 
 
+# CS 5490
+class ARLWEKeyExchange(KeyExchange):
+    """
+    Handling of anonymous RLWE key exchange
+    """
+
+    def __init__(self, cipherSuite, clientHello, serverHello):
+        super(ARLWEKeyExchange, self).__init__(cipherSuite, clientHello,
+                                               serverHello)
+        
+        # TODO variables
+    
+    def makeServerKeyExchange(self):
+        """
+        Prepare server side of anonymous key exchange with selected parameters
+        """
+        # TODO
+        return None
+    
+    def processClientKeyExchange(self, clientKeyExchange):
+        """Use client provided parameters to establish premaster secret"""
+        # TODO
+        return None
+    
+    def processServerKeyExchange(self, srvPublicKey, serverKeyExchange):
+        """Process the server key exchange, return premaster secret."""
+        # TODO
+        return None
+    
+    def makeClientKeyExchange(self):
+        """Create client key share for the key exchange"""
+        cke = super(ARLWEKeyExchange, self).makeClientKeyExchange()
+        # cke.createRLWE(...)
+        # TODO
+        return None
+
+
 # the DHE_RSA part comes from IETF ciphersuite names, we want to keep it
 #pylint: disable = invalid-name
 class DHE_RSAKeyExchange(AuthenticatedKeyExchange, ADHKeyExchange):
@@ -755,6 +792,15 @@ class ECDHE_RSAKeyExchange(AuthenticatedKeyExchange, AECDHKeyExchange):
                                                    acceptedCurves,
                                                    defaultCurve)
 #pylint: enable = invalid-name
+        self.privateKey = privateKey
+
+
+# CS 5490
+class RLWEKeyExchange(AuthenticatedKeyExchange, ARLWEKeyExchange):
+    """Helper class for conduction RLWE key exchange (KEX)"""
+    def __init__(self, cipherSuite, clientHello, serverHello, privateKey):
+        super(RLWEKeyExchange, self).__init__(cipherSuite, clientHello,
+                                              serverHello, privateKey)
         self.privateKey = privateKey
 
 
