@@ -85,6 +85,7 @@ class ClientCertificateType(TLSEnum):
     ecdsa_sign = 64  # RFC 8422
     rsa_fixed_ecdh = 65  # RFC 8422
     ecdsa_fixed_ecdh = 66  # RFC 8422
+    rlwesig_sign = 54  # CS 5490
 
 
 class SSL2HandshakeType(TLSEnum):
@@ -204,6 +205,7 @@ class SignatureAlgorithm(TLSEnum):
     ecdsa = 3
     ed25519 = 7  # RFC 8422
     ed448 = 8  # RFC 8422
+    rlwesig = 54  # CS 5490
 
 
 class SignatureScheme(TLSEnum):
@@ -243,6 +245,11 @@ class SignatureScheme(TLSEnum):
     dsa_sha256 = (4, 2)
     dsa_sha384 = (5, 2)
     dsa_sha512 = (6, 2)
+
+    # CS 5490
+    # sha384 = 5
+    # rlwesig = 54
+    rlwesig_sha384 = (5, 54)
 
     @classmethod
     def toRepr(cls, value, blacklist=None):
@@ -367,6 +374,12 @@ class AlgorithmOID(TLSEnum):
             SignatureScheme.ed25519
     oid[bytes(a2b_hex('06032b6571'))] = \
             SignatureScheme.ed448
+    # CS 5490
+    # 0.39.5490
+    # first arc must be one of 0 (ITU-T), 1 (ISO/IEC), 2 (joint-iso-itu-t)
+    # 39 is the maximum value for the second arc and is not in use
+    oid[bytes(a2b_hex('060327AA72'))] = \
+            SignatureScheme.rlwesig_sha384
 
 
 class GroupName(TLSEnum):
@@ -951,6 +964,10 @@ class CipherSuite:
     TLS_ECDHE_ECDSA_WITH_AES_256_CCM_8 = 0xC0AF
     ietfNames[0xC0AF] = 'TLS_ECDHE_ECDSA_WITH_AES_256_CCM_8'
 
+    # CS 5490
+    TLS_RLWEKEX_RLWESIG_WITH_AES_256_GCM_SHA384 = 0x5490
+    ietfNames[0x5490] = 'TLS_RLWEKEX_RLWESIG_WITH_AES_256_GCM_SHA384'
+
 #pylint: enable = invalid-name
     #
     # Define cipher suite families below
@@ -1048,6 +1065,7 @@ class CipherSuite:
     aes256GcmSuites.append(TLS_AES_256_GCM_SHA384)
     aes256GcmSuites.append(TLS_DHE_DSS_WITH_AES_256_GCM_SHA384) # unsupported
     aes256GcmSuites.append(TLS_DH_DSS_WITH_AES_256_GCM_SHA384)  # unsupported
+    aes256GcmSuites.append(TLS_RLWEKEX_RLWESIG_WITH_AES_256_GCM_SHA384) # CS 5490
 
     #: AES-128 CCM_8 ciphers
     aes128Ccm_8Suites = []
@@ -1187,6 +1205,7 @@ class CipherSuite:
     sha384Suites.append(TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384)
     sha384Suites.append(TLS_DHE_DSS_WITH_AES_256_GCM_SHA384)    # unsupported
     sha384Suites.append(TLS_DH_DSS_WITH_AES_256_GCM_SHA384) # unsupported
+    sha384Suites.append(TLS_RLWEKEX_RLWESIG_WITH_AES_256_GCM_SHA384) # CS 5490
 
     #: stream cipher construction
     streamSuites = []
@@ -1347,6 +1366,9 @@ class CipherSuite:
             keyExchangeSuites += CipherSuite.anonSuites
         if "ecdh_anon" in keyExchangeNames:
             keyExchangeSuites += CipherSuite.ecdhAnonSuites
+        # CS 5490
+        if "rlwekex_rlwesig" in keyExchangeNames:
+            keyExchangeSuites += CipherSuite.rlwekexRlwesigSuites
 
         return [s for s in suites if s in macSuites and
                 s in cipherSuites and s in keyExchangeSuites]
@@ -1486,6 +1508,17 @@ class CipherSuite:
     def getEcdsaSuites(cls, settings, version=None):
         """Provide ECDSA authenticated ciphersuites matching settings"""
         return cls._filterSuites(CipherSuite.ecdheEcdsaSuites,
+                                 settings, version)
+    
+    # CS 5490
+    #: RLWEKEX key exchange, RLWESIG authentication
+    rlwekexRlwesigSuites = []
+    rlwekexRlwesigSuites.append(TLS_RLWEKEX_RLWESIG_WITH_AES_256_GCM_SHA384)
+
+    @classmethod
+    def getRlwekexRlwesigSuites(cls, settings, version=None):
+        """Provide authenticated RLWEKEX ciphersuites matching settings"""
+        return cls._filterSuites(CipherSuite.rlwekexRlwesigSuites,
                                  settings, version)
 
     #: DHE key exchange, DSA authentication
