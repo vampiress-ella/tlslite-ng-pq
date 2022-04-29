@@ -635,6 +635,7 @@ class ADHKeyExchange(KeyExchange):
 
 
 # CS 5490
+# comment - checking if git installation worked
 class ARLWEKeyExchange(KeyExchange):
     """
     Handling of anonymous RLWE key exchange
