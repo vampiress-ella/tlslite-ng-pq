@@ -890,6 +890,8 @@ class TLSConnection(TLSRecordLayer):
 
     def _clientGetServerHello(self, settings, session, clientHello):
         client_hello_hash = self._handshake_hash.copy()
+        print("in client get server hello - settings = " + settings + " session = " + session
+            + " clientHello " + clientHello)
         for result in self._getMsg(ContentType.handshake,
                                    HandshakeType.server_hello):
             if result in (0,1): yield result
@@ -3032,6 +3034,7 @@ class TLSConnection(TLSRecordLayer):
     def _serverGetClientHello(self, settings, private_key, cert_chain,
                               verifierDB,
                               sessionCache, anon, alpn, sni):
+        print("in server get client hello - settings = " + settings)
         # Tentatively set version to most-desirable version, so if an error
         # occurs parsing the ClientHello, this will be the version we'll use
         # for the error alert
