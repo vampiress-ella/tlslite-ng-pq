@@ -1440,6 +1440,7 @@ class ServerKeyExchange(HandshakeMsg):
         self.rwle_n = 0
         self.rwle_A = []
         self.rwle_q = 0
+        self.rwle_bS = []
 
 
     def __repr__(self):
@@ -1489,11 +1490,12 @@ class ServerKeyExchange(HandshakeMsg):
         self.ecdh_Ys = point
         return self
 
-    def createRWLE(self, n, q, A):
+    def createRWLE(self, n, q, A, bS):
         """Set RWLE protocol parameters"""
         self.rwle_n = n
         self.rwle_q = q
         self.rwle_A = A
+        self.rwle_bS = bS
         return self
 
     def parse(self, parser):

@@ -649,6 +649,7 @@ class ARLWEKeyExchange(KeyExchange):
                                                serverHello)
         print("__init__")
 
+        # TODO add minimum security reqs?
         self.n, self.q = rwleParams
 
         # Generate A
@@ -672,7 +673,7 @@ class ARLWEKeyExchange(KeyExchange):
         
         version = self.serverHello.server_version
         ske = ServerKeyExchange(self.cipherSuite, version)
-        ske.createRLWE(self.n, self.q, self.A)
+        ske.createRLWE(self.n, self.q, self.A, self.bS)
         return ske
     
     def processClientKeyExchange(self, clientKeyExchange):
@@ -685,6 +686,21 @@ class ARLWEKeyExchange(KeyExchange):
     def processServerKeyExchange(self, srvPublicKey, serverKeyExchange):
         """Process the server key exchange, return premaster secret."""
         print("processServerKeyExchange")
+        # Retrieve common values from server message
+        rlwe_n = serverKeyExchange.rlwe_n
+        rlwe_q = serverKeyExchange.rlwe_q
+        rlwe_A = serverKeyExchange.rlwe_A
+
+        # Generate secret and error values
+        self.sC = self.gen_poly(rlwe_n, rlwe_q, self.xN_1)
+        self.eC = self.gen_poly(rlwe_n, rlwe_q, self.xN_1)
+
+        # Generate bC from A, error, and secret (bC = A * sC + eC)
+        self.bC = poly.polymul(rlwe_A, self.sC)
+        self.bC = np.floor(poly.polydiv(self.sC, self.xN_1)[1])
+        self.bC = poly.polyadd(self.bC, self.eC) % rlwe_q
+
+        # Generate shared key (bC * )
         return numberToByteArray(0)
     
     def makeClientKeyExchange(self):
