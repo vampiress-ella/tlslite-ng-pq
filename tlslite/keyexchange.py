@@ -679,9 +679,13 @@ class ARLWEKeyExchange(KeyExchange):
     def processClientKeyExchange(self, clientKeyExchange):
         """Use client provided parameters to establish premaster secret"""
         print("processClientKeyExchange")
-        # TODO
-        # return None
-        return numberToByteArray(0)
+        
+        # Generate shared key from client value and server secret (bC * sS)
+        bC = clientKeyExchange.rlwe_bC
+        shared_S = np.floor(poly.polymul(bC, self.sC) % self.q)
+        shared_S = np.floor(poly.polydiv(shared_S, self.xN_1)[1]) % self.q
+
+        return shared_S
     
     def processServerKeyExchange(self, srvPublicKey, serverKeyExchange):
         """Process the server key exchange, return premaster secret."""
@@ -690,6 +694,7 @@ class ARLWEKeyExchange(KeyExchange):
         rlwe_n = serverKeyExchange.rlwe_n
         rlwe_q = serverKeyExchange.rlwe_q
         rlwe_A = serverKeyExchange.rlwe_A
+        bS = serverKeyExchange.rlwe_bS
 
         # Generate secret and error values
         self.sC = self.gen_poly(rlwe_n, rlwe_q, self.xN_1)
@@ -700,18 +705,31 @@ class ARLWEKeyExchange(KeyExchange):
         self.bC = np.floor(poly.polydiv(self.sC, self.xN_1)[1])
         self.bC = poly.polyadd(self.bC, self.eC) % rlwe_q
 
-        # Generate shared key (bC * )
-        return numberToByteArray(0)
+        # Generate shared key from server value and client secret (bS * sC)
+        shared_C = np.floor(poly.polymul(bS, self.sC) % rlwe_q)
+        shared_C = np.floor(poly.polydiv(shared_C, self.xN_1)[1]) % rlwe_q
+        return shared_C
     
     def makeClientKeyExchange(self):
         """Create client key share for the key exchange"""
         print("MakeClientKeyExchange")
         cke = super(ARLWEKeyExchange, self).makeClientKeyExchange()
-        cke.createRLWE(self.rwle_pI)
+        cke.createRLWE(self.bC)
         return cke
 
     @staticmethod
     def gen_poly(n, q, xN_1):
+        """
+        Helper method to generate polynomials 
+        
+        Parameters:
+            n (int): the size of the polynomial
+            q (int): 2^n - 1; used to mod all values
+            xN_1 (list): unit list - [1, 0, 0, ..., 0, 0, 1]
+
+        Returns:
+            dist (list): generated polynomial coefficients
+        """
         # Generate normal distribution (mean in center)
         dist = np.floor(np.random.normal(0, size = (n)))
         # not totally sure why this is necessary, but including just in case

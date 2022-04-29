@@ -1683,6 +1683,9 @@ class ClientKeyExchange(HandshakeMsg):
         self.ecdh_Yc = bytearray(0)
         self.encryptedPreMasterSecret = bytearray(0)
 
+        # CS 5490 - client settings
+        self.rwle.bC = []
+
     def createSRP(self, srp_A):
         """
         Set the SRP client answer.
@@ -1732,7 +1735,7 @@ class ClientKeyExchange(HandshakeMsg):
         self.ecdh_Yc = ecdh_Yc
         return self
 
-    def createRLWE(self, rwle_pI):
+    def createRLWE(self, bC):
         """
         Set the client RWLE key share
 
@@ -1741,7 +1744,7 @@ class ClientKeyExchange(HandshakeMsg):
         :type rwle_pI: bytearray
         :rtype: ClientKeyExchange
         """
-        self.rwle.pI = rwle_pI
+        self.rwle.bC = bC
         return self
 
     def parse(self, parser):
