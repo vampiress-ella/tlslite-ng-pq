@@ -647,7 +647,8 @@ class ARLWEKeyExchange(KeyExchange):
                 rwleParams):
         super(ARLWEKeyExchange, self).__init__(cipherSuite, clientHello,
                                                serverHello)
-        
+        print("__init__")
+
         self.n, self.q = rwleParams
 
         # Generate A
@@ -659,6 +660,7 @@ class ARLWEKeyExchange(KeyExchange):
         """
         Prepare server side of anonymous key exchange with selected parameters
         """
+        print("makeServerKeyExchange")
         # Generate secret and error values
         self.sS = self.gen_poly(self.n, self.q, self.xN_1)
         self.eS = self.gen_poly(self.n, self.q, self.xN_1)
@@ -675,18 +677,19 @@ class ARLWEKeyExchange(KeyExchange):
     
     def processClientKeyExchange(self, clientKeyExchange):
         """Use client provided parameters to establish premaster secret"""
+        print("processClientKeyExchange")
         # TODO
         # return None
         return numberToByteArray(0)
     
     def processServerKeyExchange(self, srvPublicKey, serverKeyExchange):
         """Process the server key exchange, return premaster secret."""
-        # TODO
-        # return None
+        print("processServerKeyExchange")
         return numberToByteArray(0)
     
     def makeClientKeyExchange(self):
         """Create client key share for the key exchange"""
+        print("MakeClientKeyExchange")
         cke = super(ARLWEKeyExchange, self).makeClientKeyExchange()
         cke.createRLWE(self.rwle_pI)
         return cke
