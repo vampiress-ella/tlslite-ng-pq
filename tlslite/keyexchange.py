@@ -643,6 +643,7 @@ class ARLWEKeyExchange(KeyExchange):
     def __init__(self, cipherSuite, clientHello, serverHello):
         super(ARLWEKeyExchange, self).__init__(cipherSuite, clientHello,
                                                serverHello)
+        print("__init__")
         
         # TODO : variables?
     
@@ -650,6 +651,7 @@ class ARLWEKeyExchange(KeyExchange):
         """
         Prepare server side of anonymous key exchange with selected parameters
         """
+        print("makeServerKeyExchange")
         version = self.serverHello.server_version
         ske = ServerKeyExchange(self.cipherSuite, version)
         # TODO : uncomment below when method created
@@ -658,18 +660,21 @@ class ARLWEKeyExchange(KeyExchange):
     
     def processClientKeyExchange(self, clientKeyExchange):
         """Use client provided parameters to establish premaster secret"""
+        print("porcessClientKeyExchange")
         # TODO
         # return None
         return numberToByteArray(0)
     
     def processServerKeyExchange(self, srvPublicKey, serverKeyExchange):
         """Process the server key exchange, return premaster secret."""
+        print("processServerKeyExchange")
         # TODO
         # return None
         return numberToByteArray(0)
     
     def makeClientKeyExchange(self):
         """Create client key share for the key exchange"""
+        print("makeClientKeyExchange")
         cke = super(ARLWEKeyExchange, self).makeClientKeyExchange()
         # TODO : uncomment below when method created
         # cke.createRLWE(...)
