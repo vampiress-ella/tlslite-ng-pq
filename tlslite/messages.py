@@ -1522,7 +1522,8 @@ class ServerKeyExchange(HandshakeMsg):
 
         if self.cipherSuite in CipherSuite.certAllSuites or\
                 self.cipherSuite in CipherSuite.ecdheEcdsaSuites or\
-                self.cipherSuite in CipherSuite.dheDsaSuites:
+                self.cipherSuite in CipherSuite.dheDsaSuites or\
+                self.cipherSuite in CipherSuite.rlweSuite: # CS 5490
             if self.version == (3, 3):
                 self.hashAlg = parser.get(1)
                 self.signAlg = parser.get(1)

@@ -10,3 +10,4 @@ pylint_report.txt
 build/
 docs/_build/
 htmlcov/
+.vscode/
