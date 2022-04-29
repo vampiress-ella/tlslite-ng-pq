@@ -25,6 +25,10 @@ from .utils.x25519 import x25519, x448, X25519_G, X448_G, X25519_ORDER_SIZE, \
 from .utils.compat import int_types
 from .utils.codec import DecodeError
 
+# CS 5490
+import numpy as np
+from numpy.polynomial import polynomial as poly
+
 
 class KeyExchange(object):
     """
@@ -639,21 +643,34 @@ class ARLWEKeyExchange(KeyExchange):
     """
     Handling of anonymous RLWE key exchange
     """
-
-    def __init__(self, cipherSuite, clientHello, serverHello):
+    def __init__(self, cipherSuite, clientHello, serverHello,
+                rwleParams):
         super(ARLWEKeyExchange, self).__init__(cipherSuite, clientHello,
                                                serverHello)
         
-        # TODO : variables?
-    
+        self.n, self.q = rwleParams
+
+        # Generate A
+        A = np.floor(np.random.random(size = (self.n)) * self.q) % self.q
+        self.xN_1 = [1] + [0] * (self.n - 1) + [1]
+        self.A = np.floor(poly.polydiv(A, self.xN_1)[1])
+
     def makeServerKeyExchange(self):
         """
         Prepare server side of anonymous key exchange with selected parameters
         """
+        # Generate secret and error values
+        self.sS = self.gen_poly(self.n, self.q, self.xN_1)
+        self.eS = self.gen_poly(self.n, self.q, self.xN_1)
+
+        # Generate bS from A, error, and secret (bS = A * sS + eS)
+        self.bS = poly.polymul(self.A, self.sS) % self.q
+        self.bS = np.floor(poly.polydiv(self.sS, self.xN_1)[1])
+        self.bS = poly.polyAdd(self.bS, self.eS) % self.q
+        
         version = self.serverHello.server_version
         ske = ServerKeyExchange(self.cipherSuite, version)
-        # TODO : uncomment below when method created
-        # ske.createRLWE(...)
+        ske.createRLWE(self.n, self.q, self.A)
         return ske
     
     def processClientKeyExchange(self, clientKeyExchange):
@@ -671,9 +688,18 @@ class ARLWEKeyExchange(KeyExchange):
     def makeClientKeyExchange(self):
         """Create client key share for the key exchange"""
         cke = super(ARLWEKeyExchange, self).makeClientKeyExchange()
-        # TODO : uncomment below when method created
-        # cke.createRLWE(...)
+        cke.createRLWE(self.rwle_pI)
         return cke
+
+    @staticmethod
+    def gen_poly(n, q, xN_1):
+        # Generate normal distribution (mean in center)
+        dist = np.floor(np.random.normal(0, size = (n)))
+        # not totally sure why this is necessary, but including just in case
+        while (len(dist) != n):
+            dist = np.floor(np.random.normal(0, size = (n)))
+            dist = np.floor(poly.polydiv(dist, xN_1)[1] % q)
+        return dist
 
 
 # the DHE_RSA part comes from IETF ciphersuite names, we want to keep it

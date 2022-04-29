@@ -1436,6 +1436,11 @@ class ServerKeyExchange(HandshakeMsg):
         # signature hash algorithm and signing algorithm for TLSv1.2
         self.hashAlg = 0
         self.signAlg = 0
+        # CS 5490 settings for RWLE
+        self.rwle_n = 0
+        self.rwle_A = []
+        self.rwle_q = 0
+
 
     def __repr__(self):
         ret = "ServerKeyExchange(cipherSuite=CipherSuite.{0}, version={1}"\
@@ -1482,6 +1487,13 @@ class ServerKeyExchange(HandshakeMsg):
         self.curve_type = curve_type
         self.named_curve = named_curve
         self.ecdh_Ys = point
+        return self
+
+    def createRWLE(self, n, q, A):
+        """Set RWLE protocol parameters"""
+        self.rwle_n = n
+        self.rwle_q = q
+        self.rwle_A = A
         return self
 
     def parse(self, parser):
@@ -1716,6 +1728,18 @@ class ClientKeyExchange(HandshakeMsg):
         :rtype: ClientKeyExchange
         """
         self.ecdh_Yc = ecdh_Yc
+        return self
+
+    def createRLWE(self, rwle_pI):
+        """
+        Set the client RWLE key share
+
+        returns self
+
+        :type rwle_pI: bytearray
+        :rtype: ClientKeyExchange
+        """
+        self.rwle.pI = rwle_pI
         return self
 
     def parse(self, parser):
