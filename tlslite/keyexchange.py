@@ -273,6 +273,7 @@ class KeyExchange(object):
     def _tls12_verify_SKE(serverKeyExchange, publicKey, clientRandom,
                           serverRandom, validSigAlgs):
         """Verify TLSv1.2 version of SKE."""
+        print("Verifying tls 1.2")
         print(serverKeyExchange.hashAlg)
         print(serverKeyExchange.signAlg)
         if (serverKeyExchange.hashAlg, serverKeyExchange.signAlg) not in \
@@ -342,17 +343,21 @@ class KeyExchange(object):
 
         the only acceptable signature algorithms are specified by validSigAlgs
         """
+        print("Verifying server KEX")
         if serverKeyExchange.version < (3, 3):
             hashBytes = serverKeyExchange.hash(clientRandom, serverRandom)
             sigBytes = serverKeyExchange.signature
 
             if not sigBytes:
+                print("problem with signature")
                 raise TLSIllegalParameterException("Empty signature")
 
             if not publicKey.verify(sigBytes, hashBytes):
+                print("problem with verification")
                 raise TLSDecryptionFailed("Server Key Exchange signature "
                                           "invalid")
         else:
+            print("moving to other verification")
             KeyExchange._tls12_verify_SKE(serverKeyExchange, publicKey,
                                           clientRandom, serverRandom,
                                           validSigAlgs)
@@ -643,14 +648,14 @@ class ARLWEKeyExchange(KeyExchange):
     """
     Handling of anonymous RLWE key exchange
     """
-    def __init__(self, cipherSuite, clientHello, serverHello,
-                rwleParams):
+    def __init__(self, cipherSuite, clientHello, serverHello):
         super(ARLWEKeyExchange, self).__init__(cipherSuite, clientHello,
                                                serverHello)
         print("__init__")
 
         # TODO add minimum security reqs?
-        self.n, self.q = rwleParams
+        self.n = 1024
+        self.q = 2**32 - 1
 
         # Generate A
         A = np.floor(np.random.random(size = (self.n)) * self.q) % self.q
@@ -669,7 +674,7 @@ class ARLWEKeyExchange(KeyExchange):
         # Generate bS from A, error, and secret (bS = A * sS + eS)
         self.bS = poly.polymul(self.A, self.sS) % self.q
         self.bS = np.floor(poly.polydiv(self.sS, self.xN_1)[1])
-        self.bS = poly.polyAdd(self.bS, self.eS) % self.q
+        self.bS = poly.polyadd(self.bS, self.eS) % self.q
         
         version = self.serverHello.server_version
         ske = ServerKeyExchange(self.cipherSuite, version)

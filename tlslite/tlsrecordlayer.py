@@ -1007,6 +1007,7 @@ class TLSRecordLayer(object):
                 raise
 
     def _getMsg(self, expectedType, secondaryType=None, constructorType=None):
+        print("In getMsg")
         try:
             if not isinstance(expectedType, tuple):
                 expectedType = (expectedType,)
@@ -1017,13 +1018,15 @@ class TLSRecordLayer(object):
             #    then try again
             #  - we receive an empty application-data fragment; we try again
             while 1:
+                print("In loop")
                 for result in self._getNextRecord():
                     if result in (0,1):
                         yield result
                     else:
                         break
                 recordHeader, p = result
-
+                print("value of p: " + str(p))
+                print("out of loop")
                 # if this is a CCS message in TLS 1.3, sanity check and
                 # continue
                 if self.version > (3, 3) and \
@@ -1041,7 +1044,6 @@ class TLSRecordLayer(object):
 
                 #If we received an unexpected record type...
                 if recordHeader.type not in expectedType:
-
                     #If we received an alert...
                     if recordHeader.type == ContentType.alert:
                         alert = Alert().parse(p)
@@ -1203,8 +1205,10 @@ class TLSRecordLayer(object):
                 elif subType == HandshakeType.certificate_verify:
                     yield CertificateVerify(self.version).parse(p)
                 elif subType == HandshakeType.server_key_exchange:
-                    yield ServerKeyExchange(constructorType,
-                                            self.version).parse(p)
+                    temp = ServerKeyExchange(constructorType,
+                                            self.version)
+                    print(str(temp))          
+                    yield temp.parse(p)
                 elif subType == HandshakeType.server_hello_done:
                     yield ServerHelloDone().parse(p)
                 elif subType == HandshakeType.client_key_exchange:

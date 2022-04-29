@@ -624,6 +624,7 @@ class TLSConnection(TLSRecordLayer):
 
         # we'll send few messages here, send them in single TCP packet
         self.sock.buffer_writes = True
+        print("after socket buffer write")
         for result in self._clientKeyExchange(settings, cipherSuite,
                                               clientCertChain,
                                               privateKey,
@@ -890,8 +891,6 @@ class TLSConnection(TLSRecordLayer):
 
     def _clientGetServerHello(self, settings, session, clientHello):
         client_hello_hash = self._handshake_hash.copy()
-        print("in client get server hello - settings = " + settings + " session = " + session
-            + " clientHello " + clientHello)
         for result in self._getMsg(ContentType.handshake,
                                    HandshakeType.server_hello):
             if result in (0,1): yield result
@@ -1659,15 +1658,20 @@ class TLSConnection(TLSRecordLayer):
         else:
             serverCertificate = None
         # if server chose RSA key exchange, we need to skip SKE message
+        print("checking certificate suites")
+        print(str(cipherSuite))
         if cipherSuite not in CipherSuite.certSuites:
+            print("In if statement")
             for result in self._getMsg(ContentType.handshake,
                                        HandshakeType.server_key_exchange,
                                        cipherSuite):
+                print(str(result))
                 if result in (0, 1):
                     yield result
                 else: break
             serverKeyExchange = result
         else:
+            print("ciphersuite not in certsuites")
             serverKeyExchange = None
 
         for result in self._getMsg(ContentType.handshake,
@@ -1716,7 +1720,7 @@ class TLSConnection(TLSRecordLayer):
 
             #Check the server's signature, if the server chose an authenticated
             # PFS-enabled ciphersuite
-
+            print("Checking PFS signature")
             if serverKeyExchange:
                 valid_sig_algs = \
                     self._sigHashesToList(settings,
@@ -3034,7 +3038,6 @@ class TLSConnection(TLSRecordLayer):
     def _serverGetClientHello(self, settings, private_key, cert_chain,
                               verifierDB,
                               sessionCache, anon, alpn, sni):
-        print("in server get client hello - settings = " + settings)
         # Tentatively set version to most-desirable version, so if an error
         # occurs parsing the ClientHello, this will be the version we'll use
         # for the error alert

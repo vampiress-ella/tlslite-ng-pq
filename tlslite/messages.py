@@ -1410,6 +1410,7 @@ class ServerKeyExchange(HandshakeMsg):
         :type cipherSuite: int
         :param cipherSuite: id of ciphersuite selected by server
         """
+        print("In server key exchange object")
         HandshakeMsg.__init__(self, HandshakeType.server_key_exchange)
         self.cipherSuite = cipherSuite
         self.version = version
@@ -1437,10 +1438,15 @@ class ServerKeyExchange(HandshakeMsg):
         self.hashAlg = 0
         self.signAlg = 0
         # CS 5490 settings for RWLE
-        self.rwle_n = 0
-        self.rwle_A = []
-        self.rwle_q = 0
-        self.rwle_bS = []
+        print("setting 5490 stuff")
+        self.rlwe_n = 0
+        self.rlwe_n_len = 0
+        self.rlwe_q = 0
+        self.rlwe_q_len = 0
+        self.rlwe_A = bytearray(0)
+        self.rlwe_A_len = 0
+        self.rlwe_bS = bytearray(0)
+        self.rlwe_bS = 0
 
 
     def __repr__(self):
@@ -1490,12 +1496,13 @@ class ServerKeyExchange(HandshakeMsg):
         self.ecdh_Ys = point
         return self
 
-    def createRWLE(self, n, q, A, bS):
+    def createRLWE(self, n, q, A, bS):
         """Set RWLE protocol parameters"""
-        self.rwle_n = n
-        self.rwle_q = q
-        self.rwle_A = A
-        self.rwle_bS = bS
+        print("creating rwle")
+        self.rlwe_n = n
+        self.rlwe_q = q
+        self.rlwe_A = bytearray(A)
+        self.rlwe_bS = bytearray(bS)
         return self
 
     def parse(self, parser):
@@ -1529,8 +1536,15 @@ class ServerKeyExchange(HandshakeMsg):
             self.ecdh_Ys = parser.getVarBytes(1)
         # CS 5490
         elif self.cipherSuite in CipherSuite.rlweSuite:
-            # TODO
-            pass
+            print("parsing rlwe")
+            self.rlwe_n_len = parser.get(2)
+            self.rlwe_n = bytesToNumber(parser.getFixBytes(self.rlwe_n_len))
+            self.rlwe_q_len = parser.get(2)
+            self.rlwe_q = bytesToNumber(parser.getFixBytes(self.rlwe_q_len))
+            self.rlwe_A_len = parser.get(2)
+            self.rlwe_A = parser.getFixBytes(self.rlwe_A_len)
+            self.rlwe_bS_len = parser.get(2)
+            self.rlwe_bS = parser.getFixBytes(self.rlwe_bS_len)
         else:
             raise AssertionError()
 
@@ -1575,6 +1589,7 @@ class ServerKeyExchange(HandshakeMsg):
             writer.addVarSeq(self.ecdh_Ys, 1, 1)
         # CS 5490
         elif self.cipherSuite in CipherSuite.rlweSuite:
+            print("in writing params")
             # TODO
             pass
         else:
